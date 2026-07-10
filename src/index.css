@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@layer components {
+  .markdown-content h2 {
+    @apply text-2xl font-bold text-slate-900 mb-4 pb-2 border-b border-slate-200 flex items-center gap-2;
+  }
+  .markdown-content p {
+    @apply mb-4;
+  }
+  .markdown-content ul {
+    @apply list-disc list-outside pr-6 mb-4 space-y-2;
+  }
+  .markdown-content li {
+    @apply pl-2;
+  }
+  .markdown-content strong {
+    @apply font-bold text-slate-900;
+  }
+}
