@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, Apple, Search, Send, ChefHat, AlertCircle, RefreshCw, CalendarDays, Utensils } from 'lucide-react';
+import { Activity, Apple, Search, Send, ChefHat, AlertCircle, RefreshCw, CalendarDays, Utensils, Scale } from 'lucide-react';
 import Markdown from 'react-markdown';
+import { FatCalculator } from './components/FatCalculator';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'evaluate' | 'mealPlan'>('evaluate');
+  const [activeTab, setActiveTab] = useState<'evaluate' | 'mealPlan' | 'fatCalculator'>('evaluate');
   const [foodInput, setFoodInput] = useState('');
   const [evaluation, setEvaluation] = useState('');
   const [mealPlan, setMealPlan] = useState('');
@@ -89,31 +90,42 @@ export default function App() {
       </header>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-3xl mx-auto">
           
           {/* Tabs */}
-          <div className="flex bg-slate-200/60 p-1 rounded-2xl mb-8 border border-slate-200/80">
+          <div className="grid grid-cols-3 bg-slate-200/60 p-1 rounded-2xl mb-8 border border-slate-200/80 gap-1">
             <button
               onClick={() => setActiveTab('evaluate')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all text-sm sm:text-base ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3 px-2 sm:px-4 rounded-xl font-medium transition-all text-xs sm:text-sm md:text-base ${
                 activeTab === 'evaluate' 
                   ? 'bg-white text-teal-700 shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
               }`}
             >
-              <Search size={18} />
-              تقييم أكلة معينة
+              <Search size={16} className="shrink-0" />
+              <span className="truncate">تقييم أكلة</span>
             </button>
             <button
               onClick={() => setActiveTab('mealPlan')}
-              className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-medium transition-all text-sm sm:text-base ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3 px-2 sm:px-4 rounded-xl font-medium transition-all text-xs sm:text-sm md:text-base ${
                 activeTab === 'mealPlan' 
                   ? 'bg-white text-teal-700 shadow-sm' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
               }`}
             >
-              <CalendarDays size={18} />
-              اقتراح خطة يوم كامل
+              <CalendarDays size={16} className="shrink-0" />
+              <span className="truncate">خطة يوم كامل</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('fatCalculator')}
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 py-3 px-2 sm:px-4 rounded-xl font-medium transition-all text-xs sm:text-sm md:text-base ${
+                activeTab === 'fatCalculator' 
+                  ? 'bg-white text-teal-700 shadow-sm' 
+                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              <Scale size={16} className="shrink-0" />
+              <span className="truncate">حاسبة دهون الوجبة</span>
             </button>
           </div>
 
@@ -296,6 +308,10 @@ export default function App() {
                 )}
               </AnimatePresence>
             </motion.div>
+          )}
+
+          {activeTab === 'fatCalculator' && (
+            <FatCalculator />
           )}
 
           {/* Error Message */}
