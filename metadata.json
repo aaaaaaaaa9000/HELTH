@@ -1,6 +1,6 @@
 {
   "name": "مستشار التغذية العلاجية للمرارة والارتجاع",
   "description": "مساعد رقمي لتقييم الأطعمة لمرضى التهاب المرارة وارتجاع المريء",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
