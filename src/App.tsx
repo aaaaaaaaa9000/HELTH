@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Activity, Apple, Search, Send, ChefHat, AlertCircle, RefreshCw, CalendarDays, Utensils, Scale, Camera } from 'lucide-react';
+import { Activity, Apple, Search, Send, ChefHat, AlertCircle, RefreshCw, CalendarDays, Utensils, Scale, Camera, Clock, Sparkles } from 'lucide-react';
 import Markdown from 'react-markdown';
 import { FatCalculator } from './components/FatCalculator';
 import { ImageScanner } from './components/ImageScanner';
+import { RecoveryGuide } from './components/RecoveryGuide';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'evaluate' | 'imageScanner' | 'fatCalculator' | 'mealPlan'>('evaluate');
   const [foodInput, setFoodInput] = useState('');
   const [evaluation, setEvaluation] = useState('');
   const [mealPlan, setMealPlan] = useState('');
+  const [mealPlanStage, setMealPlanStage] = useState<'initial' | 'post'>('initial');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -43,7 +45,7 @@ export default function App() {
     }
   };
 
-  const handleGenerateMealPlan = async () => {
+  const handleGenerateMealPlan = async (stage: 'initial' | 'post' = mealPlanStage) => {
     setIsLoading(true);
     setError('');
     setMealPlan('');
@@ -51,6 +53,10 @@ export default function App() {
     try {
       const response = await fetch('/api/meal-plan', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ stage }),
       });
 
       const data = await response.json();
@@ -83,23 +89,27 @@ export default function App() {
               <Activity size={24} />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 leading-none">مستشار التغذية العلاجية</h1>
-              <p className="text-xs text-slate-500 mt-1">المرارة وارتجاع المريء</p>
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 leading-none">مستشار التغذية العلاجية</h1>
+              <p className="text-xs text-slate-500 mt-1">بعد استئصال المرارة وارتجاع المريء المزمن</p>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10">
         <div className="max-w-3xl mx-auto">
           
+          {/* Recovery Timeline & Differences Guide */}
+          <RecoveryGuide />
+
           {/* Tabs */}
           <div className="grid grid-cols-2 sm:grid-cols-4 bg-slate-200/60 p-1 rounded-2xl mb-8 border border-slate-200/80 gap-1">
             <button
+              type="button"
               onClick={() => setActiveTab('evaluate')}
-              className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm ${
+              className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm cursor-pointer ${
                 activeTab === 'evaluate' 
-                  ? 'bg-white text-teal-700 shadow-sm' 
+                  ? 'bg-white text-teal-700 shadow-sm font-bold' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -107,8 +117,9 @@ export default function App() {
               <span className="truncate">تقييم بالاسم</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('imageScanner')}
-              className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm ${
+              className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm cursor-pointer ${
                 activeTab === 'imageScanner' 
                   ? 'bg-white text-cyan-700 shadow-sm font-bold' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
@@ -118,10 +129,11 @@ export default function App() {
               <span className="truncate">فحص بالصورة/الكاميرا</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('fatCalculator')}
-              className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm ${
+              className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm cursor-pointer ${
                 activeTab === 'fatCalculator' 
-                  ? 'bg-white text-teal-700 shadow-sm' 
+                  ? 'bg-white text-amber-700 shadow-sm font-bold' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -129,10 +141,11 @@ export default function App() {
               <span className="truncate">حاسبة الدهون</span>
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('mealPlan')}
-              className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm ${
+              className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm cursor-pointer ${
                 activeTab === 'mealPlan' 
-                  ? 'bg-white text-indigo-700 shadow-sm' 
+                  ? 'bg-white text-indigo-700 shadow-sm font-bold' 
                   : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200'
               }`}
             >
@@ -144,15 +157,15 @@ export default function App() {
           {activeTab === 'evaluate' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
               {/* Hero Section */}
-              <div className="text-center mb-10">
+              <div className="text-center mb-8">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-teal-50 text-teal-500 mb-4 shadow-sm border border-teal-100">
                   <Apple size={32} />
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
-                  هل هذه الأكلة مناسبة لحالتك؟
+                  هل هذه الأكلة مناسبة بعد استئصال المرارة والارتجاع؟
                 </h2>
                 <p className="text-slate-600 text-sm md:text-base leading-relaxed">
-                  أدخل اسم الأكلة أو المكون الغذائي وسأقوم بتقييمه فوراً بناءً على قواعد التغذية العلاجية الصارمة لمرضى التهاب المرارة وارتجاع المريء معاً.
+                  أدخل اسم الأكلة أو المكون وسيقوم المساعد الطبي بتقييمها فوراً بناءً على ضوابط تدفق الصفراء وتجنب الإسهال الدهني وحماية صمام المريء مع مقارنة مرحلتي النقاهة والتكيف.
                 </p>
               </div>
 
@@ -163,16 +176,17 @@ export default function App() {
                   <input
                     type="text"
                     className="flex-1 bg-transparent border-none outline-none text-lg text-slate-900 placeholder:text-slate-400 py-2"
-                    placeholder="مثال: مكرونة بالبشاميل، تفاح، قهوة..."
+                    placeholder="مثال: مكرونة بالبشاميل، تفاح، قهوة، سمك مشوي..."
                     value={foodInput}
                     onChange={(e) => setFoodInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     disabled={isLoading}
                   />
                   <button
+                    type="button"
                     onClick={handleEvaluate}
                     disabled={!foodInput.trim() || isLoading}
-                    className="mr-3 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:text-slate-500 text-white p-3 rounded-xl transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+                    className="mr-3 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:text-slate-500 text-white p-3 rounded-xl transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 cursor-pointer"
                   >
                     {isLoading ? (
                       <RefreshCw className="animate-spin" size={20} />
@@ -189,7 +203,7 @@ export default function App() {
                 <button
                   type="button"
                   onClick={() => setActiveTab('imageScanner')}
-                  className="text-cyan-700 hover:text-cyan-800 font-bold flex items-center gap-1 hover:underline"
+                  className="text-cyan-700 hover:text-cyan-800 font-bold flex items-center gap-1 hover:underline cursor-pointer"
                 >
                   <Camera size={14} />
                   فحص الملصق بالكاميرا / رفع صورة
@@ -203,13 +217,13 @@ export default function App() {
                     key="result"
                     initial={{ opacity: 0, scale: 0.98, y: 10 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden"
+                    className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8"
                   >
                     <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center gap-3">
-                      <ChefHat className="text-slate-500" size={20} />
-                      <h3 className="font-semibold text-slate-700">التقييم الغذائي</h3>
+                      <ChefHat className="text-teal-600" size={20} />
+                      <h3 className="font-semibold text-slate-700">التقييم الطبي التغذوي</h3>
                     </div>
-                    <div className="p-6 md:p-8 markdown-content text-slate-700 text-lg leading-relaxed">
+                    <div className="p-6 md:p-8 markdown-content text-slate-700 text-lg leading-relaxed prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-teal-800 prose-a:text-teal-600 prose-p:leading-relaxed prose-li:my-1 prose-strong:text-slate-900 rtl:prose-li:marker:ml-2">
                       <Markdown>{evaluation}</Markdown>
                     </div>
                   </motion.div>
@@ -221,29 +235,29 @@ export default function App() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-10 flex flex-col items-center justify-center gap-4"
+                    className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 flex flex-col items-center justify-center gap-4 mb-8"
                   >
                     <div className="relative w-16 h-16">
                       <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
                       <div className="absolute inset-0 border-4 border-teal-500 rounded-full border-t-transparent animate-spin"></div>
                     </div>
-                    <p className="text-slate-500 font-medium animate-pulse">جاري تقييم {foodInput} بناءً على حالتك...</p>
+                    <p className="text-slate-500 font-medium animate-pulse mt-2">يقوم المساعد الطبي بتحليل الأكلة ومطابقتها مع مرحلة ما بعد استئصال المرارة والارتجاع...</p>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              {/* Tips Section (Empty State) */}
-              {!evaluation && !isLoading && !error && (
-                <div className="mt-12 grid gap-4 grid-cols-1 md:grid-cols-2">
+              {/* Quick Info Cards */}
+              {!evaluation && !isLoading && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                   <div className="bg-green-50/50 rounded-xl p-5 border border-green-100">
                     <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-green-500"></span>
                       أمثلة مقبولة
                     </h4>
                     <ul className="text-sm text-green-700/80 space-y-2">
-                      <li>• صدور الدجاج المشوية (بدون جلد)</li>
-                      <li>• الخضروات المسلوقة (كوسة، جزر)</li>
-                      <li>• التفاح والكمثرى</li>
+                      <li>• صدور الدجاج والسمك الأبيض المشوي بدون جلد أو زيوت</li>
+                      <li>• الخضروات المسلوقة المقشرة (كوسة، جزر، بطاطس)</li>
+                      <li>• التفاح والكمثرى والموز والأرز الأبيض</li>
                     </ul>
                   </div>
                   <div className="bg-red-50/50 rounded-xl p-5 border border-red-100">
@@ -252,9 +266,9 @@ export default function App() {
                       أمثلة ممنوعة
                     </h4>
                     <ul className="text-sm text-red-700/80 space-y-2">
-                      <li>• البطاطس المقلية والوجبات السريعة</li>
-                      <li>• صلصة الطماطم الحمراء والشطة</li>
-                      <li>• القهوة والشوكولاتة والنعناع</li>
+                      <li>• المقليات والدهون الثقيلة والزيوت المهدرجة</li>
+                      <li>• صلصة الطماطم الحمراء والليمون والبهارات الحارة</li>
+                      <li>• القهوة والشوكولاتة والنعناع (ترخي صمام المريء)</li>
                     </ul>
                   </div>
                 </div>
@@ -262,28 +276,82 @@ export default function App() {
             </motion.div>
           )}
 
+          {activeTab === 'imageScanner' && (
+            <ImageScanner />
+          )}
+
+          {activeTab === 'fatCalculator' && (
+            <FatCalculator />
+          )}
+
           {activeTab === 'mealPlan' && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="text-center mb-8">
+              <div className="text-center mb-6">
                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-500 mb-4 shadow-sm border border-indigo-100">
                   <Utensils size={32} />
                 </div>
-                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">
+                <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
                   خطة وجبات يوم كامل
                 </h2>
                 <p className="text-slate-600 text-sm md:text-base leading-relaxed">
-                  هل تحتاج إلى أفكار لوجبات يوم كامل خالية من الممنوعات؟ اضغط على الزر أدناه لتوليد خطة غذائية صحية تناسب المرارة والارتجاع.
+                  اختر مرحلتك الحالية لتوليد خطة غذائية صحية تناسب تدفق الصفراء وتمنع الارتجاع:
                 </p>
+              </div>
+
+              {/* Stage Selector */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMealPlanStage('initial');
+                    handleGenerateMealPlan('initial');
+                  }}
+                  className={`p-4 rounded-xl border-2 text-right transition-all flex items-start gap-3 cursor-pointer ${
+                    mealPlanStage === 'initial'
+                      ? 'border-indigo-600 bg-indigo-50/50 shadow-xs'
+                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg shrink-0 ${mealPlanStage === 'initial' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                    <Clock size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">مرحلة النقاهة الأولى (أول شهرين)</h4>
+                    <p className="text-xs text-slate-500 mt-1">وجبات شديدة الخفة (أقل من 3 جم دهن بالوجبة) مسلوقة لمنع الإسهال الصفراوي.</p>
+                  </div>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMealPlanStage('post');
+                    handleGenerateMealPlan('post');
+                  }}
+                  className={`p-4 rounded-xl border-2 text-right transition-all flex items-start gap-3 cursor-pointer ${
+                    mealPlanStage === 'post'
+                      ? 'border-indigo-600 bg-indigo-50/50 shadow-xs'
+                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                  }`}
+                >
+                  <div className={`p-2 rounded-lg shrink-0 ${mealPlanStage === 'post' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                    <Sparkles size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">مرحلة ما بعد التكيف (بعد 3 أشهر)</h4>
+                    <p className="text-xs text-slate-500 mt-1">تنوع أكبر مع دهون صحية معتدلة (5-7 جم بالوجبة) واستمرار حظر مهيجات الارتجاع.</p>
+                  </div>
+                </button>
               </div>
 
               {!mealPlan && !isLoading && (
                 <div className="flex justify-center mb-8">
                   <button
-                    onClick={handleGenerateMealPlan}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-3 text-lg"
+                    type="button"
+                    onClick={() => handleGenerateMealPlan(mealPlanStage)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3.5 rounded-xl font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-3 text-base cursor-pointer"
                   >
-                    <CalendarDays size={24} />
-                    توليد خطة الوجبات
+                    <CalendarDays size={22} />
+                    توليد خطة الوجبات لهذه المرحلة
                   </button>
                 </div>
               )}
@@ -300,11 +368,14 @@ export default function App() {
                     <div className="bg-slate-50 border-b border-slate-200 px-6 py-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <CalendarDays className="text-indigo-600" size={20} />
-                        <h3 className="font-semibold text-slate-700">الخطة المقترحة</h3>
+                        <h3 className="font-semibold text-slate-700">
+                          {mealPlanStage === 'initial' ? 'خطة وجبات مرحلة النقاهة الأولى' : 'خطة وجبات مرحلة ما بعد التكيف'}
+                        </h3>
                       </div>
                       <button 
-                        onClick={handleGenerateMealPlan}
-                        className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                        type="button"
+                        onClick={() => handleGenerateMealPlan(mealPlanStage)}
+                        className="text-sm text-indigo-600 hover:text-indigo-800 flex items-center gap-1 font-medium bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                       >
                         <RefreshCw size={16} />
                         توليد خطة أخرى
@@ -333,14 +404,6 @@ export default function App() {
                 )}
               </AnimatePresence>
             </motion.div>
-          )}
-
-          {activeTab === 'imageScanner' && (
-            <ImageScanner />
-          )}
-
-          {activeTab === 'fatCalculator' && (
-            <FatCalculator />
           )}
 
           {/* Error Message */}

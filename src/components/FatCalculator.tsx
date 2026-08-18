@@ -115,11 +115,11 @@ export function FatCalculator() {
   };
 
   // Evaluation status
-  // Gallbladder clinical safety thresholds per single meal:
-  // <= 3g: Ideal / Very Low Fat
-  // 3.1 - 7g: Safe for main meal
-  // 7.1 - 10g: Maximum limit / Caution
-  // > 10g: Danger / Exceeds Gallbladder Limit
+  // Post-cholecystectomy clinical safety thresholds per single meal:
+  // <= 3g: Ideal / Very Low Fat (Best during initial recovery weeks)
+  // 3.1 - 6g: Safe for post-cholecystectomy recovery & GERD
+  // 6.1 - 10g: Borderline / Allowed after full recovery adaptation
+  // > 10g: Danger / Exceeds liver bile direct digestive capacity & triggers GERD
   const getSafetyStatus = (fat: number) => {
     if (fat <= 3.0) {
       return {
@@ -129,10 +129,10 @@ export function FatCalculator() {
         bgBox: 'bg-emerald-50 border-emerald-200 text-emerald-900',
         progressBarColor: 'bg-emerald-500',
         icon: <ShieldCheck className="text-emerald-600" size={24} />,
-        title: 'وجبة ممتازة وخفيفة جداً على المرارة والمعدة',
-        description: 'كمية الدهون ضئيلة للغاية (أقل من 3 جم)، مما يمنع انقباض المرارة المفاجئ ولا يرهق تفريغ المعدة، وهي مثالية للتعافي التام ومنع الارتجاع.',
+        title: 'وجبة مثالية لفترة النقاهة بعد الاستئصال ولمرضى الارتجاع',
+        description: 'كمية الدهون ضئيلة للغاية (أقل من 3 جم)، وهي الأنسب للأسابيع الأولى بعد العملية لمنع الإسهال الصفراوي وحماية صمام المريء من الارتجاع.',
       };
-    } else if (fat <= 7.0) {
+    } else if (fat <= 6.0) {
       return {
         level: 'safe-good',
         badge: 'مناسبة وضمن النطاق الآمن',
@@ -140,30 +140,30 @@ export function FatCalculator() {
         bgBox: 'bg-teal-50 border-teal-200 text-teal-900',
         progressBarColor: 'bg-teal-500',
         icon: <CheckCircle2 className="text-teal-600" size={24} />,
-        title: 'وجبة متوازنة ومقبولة لمرضى المرارة والارتجاع',
-        description: 'كمية الدهون (3-7 جم) تقع في المعدل الصحي للوجبة الرئيسية لمرضى المرارة. يُنصح بمضغ الطعام جيداً والجلوس مستقيماً بعد الوجبة.',
+        title: 'وجبة معتدلة ومناسبة لمرحلة ما بعد استئصال المرارة',
+        description: 'كمية الدهون (3-6 جم) ملائمة بعد مرور أول أسابيع من العملية ومع مرحلة التكيف الهضمي، ولا تثقل صمام المريء.',
       };
     } else if (fat <= 10.0) {
       return {
         level: 'warning',
-        badge: 'الحد الأقصى - تنبيه وتحذير',
+        badge: 'الحد الأقصى - مسموح فقط بعد التعافي التام',
         color: 'amber',
         bgBox: 'bg-amber-50 border-amber-300 text-amber-900',
         progressBarColor: 'bg-amber-500',
         icon: <AlertTriangle className="text-amber-600" size={24} />,
-        title: 'تقترب من الحد الأقصى المسموح به للوجبة الواحدة',
-        description: 'تحتوي الوجبة على (7-10 جم دهون) وهو أقصى حد مسموح لمريض المرارة. يُنصح بتقسيم الوجبة على حصتين وتجنب النوم أو الاستلقاء بعدها لمدة 3 ساعات.',
+        title: 'تقترب من الحد الأقصى (غير مناسبة داخل فترة النقاهة الأولى)',
+        description: 'تحتوي الوجبة على (6-10 جم دهون)، وهذا الحد مسموح فقط بعد مرور 2-3 أشهر من العملية وبعد تكيف القنوات الصفراوية، مع تجنب الاستلقاء بعدها.',
       };
     } else {
       return {
         level: 'danger',
-        badge: '⚠️ تحذير: تجاوزت الحد المسموح للمرارة!',
+        badge: '⚠️ تحذير: تتجاوز قدرة القنوات الصفراوية!',
         color: 'rose',
         bgBox: 'bg-rose-50 border-rose-300 text-rose-900',
         progressBarColor: 'bg-rose-600',
         icon: <AlertCircle className="text-rose-600" size={24} />,
-        title: 'خطر حدوث نوبة مغص مراري أو ارتجاع شديد!',
-        description: 'تتجاوز الوجبة 10 جرامات دهون! زيادة الدهون تُحفز إفراز هرمون (CCK) الذي يسبب انقباضاً شديداً للمرارة حول الحصوات أو إسهالاً صفراوياً بعد الاستئصال، كما ترخي الصمام الفؤادي مسببة حرقة وارتجاعاً حاداً.',
+        title: 'خطر إسهال صفراوي حاد وارتخاء صمام المريء!',
+        description: 'تتجاوز الوجبة 10 جرامات دهون! لعدم وجود خزان المرارة، لا تستطيع العصارة الصفراوية المتقطرة هضم هذا المقدار مما يسبب إسهالاً صفراوياً دهنياً، مع بطء تفريغ المعدة وتفاقم ارتجاع الأحماض للمريء.',
       };
     }
   };
@@ -185,10 +185,10 @@ export function FatCalculator() {
           <Scale size={32} />
         </div>
         <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">
-          حاسبة دهون الوجبة لمرضى المرارة
+          حاسبة دهون الوجبة بعد استئصال المرارة
         </h2>
         <p className="text-slate-600 text-sm md:text-base max-w-xl mx-auto leading-relaxed">
-          أدخل وزن مكونات وجبتك لمعرفة كمية الدهون الإجمالية والتأكد من عدم تجاوز الحد الطبي الحرج (أقصى حد <strong className="text-slate-800">10 جم دهون</strong> للوجبة الواحدة).
+          أدخل وزن مكونات وجبتك لمعرفة كمية الدهون الصافية والتأكد من مطابقتها لفترة النقاهة (أقل من 3-5 جم) أو مرحلة ما بعد التكيف (أقل من 7-10 جم).
         </p>
       </div>
 
