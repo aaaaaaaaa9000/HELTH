@@ -16,6 +16,32 @@ import {
 } from 'lucide-react';
 import Markdown from 'react-markdown';
 
+const MAX_IMAGE_SIDE = 1600;
+const JPEG_QUALITY = 0.85;
+
+// Draws a frame onto a canvas, shrinking it so the longest side is at most MAX_IMAGE_SIDE.
+function drawScaled(source: CanvasImageSource, width: number, height: number): string | null {
+  const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(width, height));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(width * scale);
+  canvas.height = Math.round(height * scale);
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  ctx.drawImage(source, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', JPEG_QUALITY);
+}
+
+// Re-encodes an uploaded image as a downscaled JPEG to keep uploads small.
+// Falls back to the original data if the browser cannot decode the format.
+function downscaleImage(dataUrl: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(drawScaled(img, img.naturalWidth, img.naturalHeight));
+    img.onerror = () => resolve(null);
+    img.src = dataUrl;
+  });
+}
+
 export function ImageScanner() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [mimeType, setMimeType] = useState<string>('image/jpeg');
@@ -84,14 +110,9 @@ export function ImageScanner() {
   const capturePhoto = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 640;
-    canvas.height = video.videoHeight || 480;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const dataUrl = drawScaled(video, video.videoWidth || 640, video.videoHeight || 480);
+    if (!dataUrl) return;
 
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
     setImageSrc(dataUrl);
     setMimeType('image/jpeg');
     setAnalysisResult(null);
@@ -112,10 +133,11 @@ export function ImageScanner() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      setImageSrc(result);
-      setMimeType(file.type || 'image/jpeg');
+    reader.onload = async (event) => {
+      const original = event.target?.result as string;
+      const resized = await downscaleImage(original);
+      setImageSrc(resized ?? original);
+      setMimeType(resized ? 'image/jpeg' : file.type || 'image/jpeg');
       setAnalysisResult(null);
       setError(null);
       stopCameraStream();
@@ -290,6 +312,7 @@ export function ImageScanner() {
                 placeholder="مثال: أنوي تناول نصف العلبة، أو ملعقتين فقط..."
                 value={userNotes}
                 onChange={(e) => setUserNotes(e.target.value)}
+                maxLength={500}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 focus:ring-2 focus:ring-cyan-500 focus:outline-none"
               />
             </div>

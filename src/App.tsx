@@ -12,14 +12,23 @@ export default function App() {
   const [evaluation, setEvaluation] = useState('');
   const [mealPlan, setMealPlan] = useState('');
   const [mealPlanStage, setMealPlanStage] = useState<'initial' | 'post'>('initial');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [evalLoading, setEvalLoading] = useState(false);
+  const [evalError, setEvalError] = useState('');
+  const [planLoading, setPlanLoading] = useState(false);
+  const [planError, setPlanError] = useState('');
+
+  type Tab = typeof activeTab;
+  const switchTab = (tab: Tab) => {
+    setActiveTab(tab);
+    setEvalError('');
+    setPlanError('');
+  };
 
   const handleEvaluate = async () => {
-    if (!foodInput.trim()) return;
+    if (!foodInput.trim() || evalLoading) return;
 
-    setIsLoading(true);
-    setError('');
+    setEvalLoading(true);
+    setEvalError('');
     setEvaluation('');
 
     try {
@@ -39,15 +48,16 @@ export default function App() {
 
       setEvaluation(data.result);
     } catch (err: any) {
-      setError(err.message || 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
+      setEvalError(err.message || 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
     } finally {
-      setIsLoading(false);
+      setEvalLoading(false);
     }
   };
 
   const handleGenerateMealPlan = async (stage: 'initial' | 'post' = mealPlanStage) => {
-    setIsLoading(true);
-    setError('');
+    if (planLoading) return;
+    setPlanLoading(true);
+    setPlanError('');
     setMealPlan('');
 
     try {
@@ -67,9 +77,9 @@ export default function App() {
 
       setMealPlan(data.result);
     } catch (err: any) {
-      setError(err.message || 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
+      setPlanError(err.message || 'فشل الاتصال بالخادم. يرجى المحاولة مرة أخرى.');
     } finally {
-      setIsLoading(false);
+      setPlanLoading(false);
     }
   };
 
@@ -106,7 +116,7 @@ export default function App() {
           <div className="grid grid-cols-2 sm:grid-cols-4 bg-slate-200/60 p-1 rounded-2xl mb-8 border border-slate-200/80 gap-1">
             <button
               type="button"
-              onClick={() => setActiveTab('evaluate')}
+              onClick={() => switchTab('evaluate')}
               className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm cursor-pointer ${
                 activeTab === 'evaluate' 
                   ? 'bg-white text-teal-700 shadow-sm font-bold' 
@@ -118,7 +128,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('imageScanner')}
+              onClick={() => switchTab('imageScanner')}
               className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm cursor-pointer ${
                 activeTab === 'imageScanner' 
                   ? 'bg-white text-cyan-700 shadow-sm font-bold' 
@@ -130,7 +140,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('fatCalculator')}
+              onClick={() => switchTab('fatCalculator')}
               className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm cursor-pointer ${
                 activeTab === 'fatCalculator' 
                   ? 'bg-white text-amber-700 shadow-sm font-bold' 
@@ -142,7 +152,7 @@ export default function App() {
             </button>
             <button
               type="button"
-              onClick={() => setActiveTab('mealPlan')}
+              onClick={() => switchTab('mealPlan')}
               className={`flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-medium transition-all text-xs sm:text-sm cursor-pointer ${
                 activeTab === 'mealPlan' 
                   ? 'bg-white text-indigo-700 shadow-sm font-bold' 
@@ -180,15 +190,16 @@ export default function App() {
                     value={foodInput}
                     onChange={(e) => setFoodInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    disabled={isLoading}
+                    disabled={evalLoading}
+                    maxLength={200}
                   />
                   <button
                     type="button"
                     onClick={handleEvaluate}
-                    disabled={!foodInput.trim() || isLoading}
+                    disabled={!foodInput.trim() || evalLoading}
                     className="mr-3 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 disabled:text-slate-500 text-white p-3 rounded-xl transition-colors flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 cursor-pointer"
                   >
-                    {isLoading ? (
+                    {evalLoading ? (
                       <RefreshCw className="animate-spin" size={20} />
                     ) : (
                       <Send size={20} className="rotate-180" />
@@ -202,7 +213,7 @@ export default function App() {
                 <span>هل لديك منتج معبأ أو جدول غذائي؟</span>
                 <button
                   type="button"
-                  onClick={() => setActiveTab('imageScanner')}
+                  onClick={() => switchTab('imageScanner')}
                   className="text-cyan-700 hover:text-cyan-800 font-bold flex items-center gap-1 hover:underline cursor-pointer"
                 >
                   <Camera size={14} />
@@ -212,7 +223,7 @@ export default function App() {
 
               {/* Results Area */}
               <AnimatePresence mode="wait">
-                {evaluation && !isLoading && (
+                {evaluation && !evalLoading && (
                   <motion.div
                     key="result"
                     initial={{ opacity: 0, scale: 0.98, y: 10 }}
@@ -223,13 +234,13 @@ export default function App() {
                       <ChefHat className="text-teal-600" size={20} />
                       <h3 className="font-semibold text-slate-700">التقييم الطبي التغذوي</h3>
                     </div>
-                    <div className="p-6 md:p-8 markdown-content text-slate-700 text-lg leading-relaxed prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-teal-800 prose-a:text-teal-600 prose-p:leading-relaxed prose-li:my-1 prose-strong:text-slate-900 rtl:prose-li:marker:ml-2">
+                    <div className="p-6 md:p-8 markdown-content text-slate-700 text-lg leading-relaxed">
                       <Markdown>{evaluation}</Markdown>
                     </div>
                   </motion.div>
                 )}
                 
-                {isLoading && (
+                {evalLoading && (
                   <motion.div
                     key="loading"
                     initial={{ opacity: 0 }}
@@ -247,7 +258,7 @@ export default function App() {
               </AnimatePresence>
 
               {/* Quick Info Cards */}
-              {!evaluation && !isLoading && (
+              {!evaluation && !evalLoading && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                   <div className="bg-green-50/50 rounded-xl p-5 border border-green-100">
                     <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
@@ -302,6 +313,7 @@ export default function App() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
                 <button
                   type="button"
+                  disabled={planLoading}
                   onClick={() => {
                     setMealPlanStage('initial');
                     handleGenerateMealPlan('initial');
@@ -323,6 +335,7 @@ export default function App() {
 
                 <button
                   type="button"
+                  disabled={planLoading}
                   onClick={() => {
                     setMealPlanStage('post');
                     handleGenerateMealPlan('post');
@@ -343,7 +356,7 @@ export default function App() {
                 </button>
               </div>
 
-              {!mealPlan && !isLoading && (
+              {!mealPlan && !planLoading && (
                 <div className="flex justify-center mb-8">
                   <button
                     type="button"
@@ -358,7 +371,7 @@ export default function App() {
 
               {/* Meal Plan Results Area */}
               <AnimatePresence mode="wait">
-                {mealPlan && !isLoading && (
+                {mealPlan && !planLoading && (
                   <motion.div
                     key="meal-plan-result"
                     initial={{ opacity: 0, scale: 0.98, y: 10 }}
@@ -381,13 +394,13 @@ export default function App() {
                         توليد خطة أخرى
                       </button>
                     </div>
-                    <div className="p-6 md:p-8 markdown-content text-slate-700 text-lg leading-relaxed prose prose-slate prose-lg max-w-none prose-headings:font-bold prose-headings:text-indigo-900 prose-a:text-indigo-600 prose-p:leading-relaxed prose-li:my-1 prose-strong:text-slate-900 rtl:prose-li:marker:ml-2">
+                    <div className="p-6 md:p-8 markdown-content text-slate-700 text-lg leading-relaxed">
                       <Markdown>{mealPlan}</Markdown>
                     </div>
                   </motion.div>
                 )}
                 
-                {isLoading && (
+                {planLoading && (
                   <motion.div
                     key="loading-meal-plan"
                     initial={{ opacity: 0 }}
@@ -408,7 +421,7 @@ export default function App() {
 
           {/* Error Message */}
           <AnimatePresence>
-            {error && (
+            {(activeTab === 'evaluate' ? evalError : activeTab === 'mealPlan' ? planError : '') && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -416,13 +429,19 @@ export default function App() {
                 className="bg-red-50 border-r-4 border-red-500 p-4 rounded-lg flex items-start gap-3 mt-6"
               >
                 <AlertCircle className="text-red-500 mt-0.5" size={20} />
-                <p className="text-red-800 text-sm font-medium">{error}</p>
+                <p className="text-red-800 text-sm font-medium">{activeTab === 'evaluate' ? evalError : planError}</p>
               </motion.div>
             )}
           </AnimatePresence>
 
         </div>
       </main>
+
+      <footer className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+        <p className="text-center text-xs text-slate-500 leading-relaxed border-t border-slate-200 pt-6">
+          ⚕️ هذه المعلومات استرشادية ولا تغني عن استشارة الطبيب أو أخصائي التغذية المعالج.
+        </p>
+      </footer>
     </div>
   );
 }
