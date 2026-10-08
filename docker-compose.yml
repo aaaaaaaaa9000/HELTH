@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: ai-app-helth
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-20}
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ai-helth.rule=Host(`helth.aaaaaaaaa9000.cloud`)"
+      - "traefik.http.routers.ai-helth.entrypoints=websecure"
+      - "traefik.http.routers.ai-helth.tls=true"
+      - "traefik.http.routers.ai-helth.tls.certresolver=letsencrypt"
+      - "traefik.http.services.ai-helth.loadbalancer.server.port=3000"
+      - "traefik.docker.network=automation-stack_automation-network"
+
+networks:
+  default:
+    external:
+      name: automation-stack_automation-network
